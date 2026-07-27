@@ -31,8 +31,13 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/erudite/projects/quickbooks-online-mcp-server
+            cd /home/erudite/projects
 
+            if [ ! -d "quickbooks-online-mcp-server" ]; then
+              git clone git@github-plimlico-quickbook:mohitmistry-cmyk/quickbooks-online-mcp-server.git
+            fi
+
+            cd quickbooks-online-mcp-server
             git pull origin main
 
             cat > .env << 'EOF'
