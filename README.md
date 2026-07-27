@@ -16,7 +16,7 @@
 </div>
 
 ---
-
+ 
 ## Overview
 
 This MCP server provides complete QuickBooks Online API integration for Claude Code and other MCP-compatible clients. It includes full CRUD operations for 29 entity types and 11 financial reports, giving you comprehensive access to QuickBooks Online functionality.
