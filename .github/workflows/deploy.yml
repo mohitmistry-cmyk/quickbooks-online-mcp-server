@@ -40,10 +40,6 @@ jobs:
             cd quickbooks-online-mcp-server
             git pull origin main
 
-            cat > .env << 'EOF'
-            ${{ secrets.ENV_FILE }}
-            EOF
-
             docker compose up -d --build --remove-orphans
             docker cp quickbooks-mcp-server:/app/dist ./dist
             docker cp quickbooks-mcp-server:/app/node_modules ./node_modules

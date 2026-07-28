@@ -18,7 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // placeholders a host app (e.g. Claude Desktop) may inject via its env config.
 // This prevents the server from starting with blank REFRESH_TOKEN / REALM_ID
 // even when the host config has those keys set to "".
-dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: true });
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: false });
 
 // Register once at module level — registering inside startOAuthFlow() would
 // accumulate duplicate handlers on every OAuth call.
@@ -29,17 +29,15 @@ process.on('unhandledRejection', (reason) => {
   console.error('[auth-server] unhandledRejection:', reason);
 });
 
-const client_id = process.env.QUICKBOOKS_CLIENT_ID;
-const client_secret = process.env.QUICKBOOKS_CLIENT_SECRET;
+const client_id = process.env.QUICKBOOKS_CLIENT_ID || '';
+const client_secret = process.env.QUICKBOOKS_CLIENT_SECRET || '';
 const refresh_token = process.env.QUICKBOOKS_REFRESH_TOKEN;
 const realm_id = process.env.QUICKBOOKS_REALM_ID;
 const environment = process.env.QUICKBOOKS_ENVIRONMENT || 'sandbox';
-// Fix for Issue #5: Use env var with underscore (QUICKBOOKS_REDIRECT_URI)
 const redirect_uri = process.env.QUICKBOOKS_REDIRECT_URI || 'http://localhost:8000/callback';
 
-// Only throw error if client_id or client_secret is missing
-if (!client_id || !client_secret || !redirect_uri) {
-  throw Error("Client ID, Client Secret and Redirect URI must be set in environment variables");
+if (!client_id || !client_secret) {
+  console.warn('[qbo-client] Note: QUICKBOOKS_CLIENT_ID / QUICKBOOKS_CLIENT_SECRET not set in local .env. Waiting for parent process (Lily AI Assistant) to provide credentials via process.env.');
 }
 
 // ── QuickbooksClient ─────────────────────────────────────────────────────────
@@ -400,6 +398,27 @@ export class QuickbooksClient {
     if (this.authInFlight) {
       return this.authInFlight;
     }
+
+    // Sync credentials dynamically from process.env if not set on instance
+    if (!this.clientId && process.env.QUICKBOOKS_CLIENT_ID) {
+      (this as any).clientId = process.env.QUICKBOOKS_CLIENT_ID;
+    }
+    if (!this.clientSecret && process.env.QUICKBOOKS_CLIENT_SECRET) {
+      (this as any).clientSecret = process.env.QUICKBOOKS_CLIENT_SECRET;
+    }
+    if (!this.refreshToken && process.env.QUICKBOOKS_REFRESH_TOKEN) {
+      this.refreshToken = process.env.QUICKBOOKS_REFRESH_TOKEN;
+    }
+    if (!this.realmId && process.env.QUICKBOOKS_REALM_ID) {
+      this.realmId = process.env.QUICKBOOKS_REALM_ID;
+    }
+
+    this.oauthClient = new OAuthClient({
+      clientId: this.clientId,
+      clientSecret: this.clientSecret,
+      environment: this.environment,
+      redirectUri: this.redirectUri,
+    });
 
     this.authInFlight = (async () => {
       try {
