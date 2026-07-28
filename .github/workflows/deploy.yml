@@ -44,7 +44,5 @@ jobs:
             ${{ secrets.ENV_FILE }}
             EOF
 
-            npm ci
-            npm run build
-
             docker compose up -d --build --remove-orphans
+            docker cp quickbooks-mcp-server:/app/dist ./dist
