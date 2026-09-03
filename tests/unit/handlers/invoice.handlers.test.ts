@@ -51,6 +51,27 @@ describe('Invoice Handlers', () => {
       expect(payload.GlobalTaxCalculation).toBe('TaxExcluded');
     });
 
+    it('should create an unmatched item-name fallback as a description-only line', async () => {
+      mockQuickBooksInstance.createInvoice.mockImplementation((payload: any, cb: any) =>
+        cb(null, { Id: '124', TotalAmt: 0 })
+      );
+
+      const result = await createQuickbooksInvoice({
+        customer_ref: 'cust-1',
+        line_items: [{ qty: 1, unit_price: 250, description: 'Unknown Salesforce product' }]
+      });
+
+      expect(result.isError).toBe(false);
+      const payload = (mockQuickBooksInstance.createInvoice.mock.calls[0] as any)[0];
+      expect(payload.Line[0]).toEqual({
+        Id: '1',
+        LineNum: 1,
+        Description: 'Unknown Salesforce product',
+        DetailType: 'DescriptionOnly',
+      });
+      expect(payload.Line[0]).not.toHaveProperty('Amount');
+    });
+
     it('should handle authentication errors', async () => {
       (mockQuickbooksClientClass.getInstance as any).mockRejectedValue(new Error('Auth failed'));
 

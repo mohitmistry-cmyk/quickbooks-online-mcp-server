@@ -5,7 +5,7 @@ import { formatError } from "../helpers/format-error.js";
 export interface CreateInvoiceInput {
   customer_ref: string; // customer id
   line_items: Array<{
-    item_ref: string; // item id
+    item_ref?: string; // item id; omitted for a description-only line
     qty: number;
     unit_price: number;
     description?: string;
@@ -68,20 +68,25 @@ export async function createQuickbooksInvoice(data: CreateInvoiceInput): Promise
 
     const invoicePayload: any = {
       CustomerRef: { value: data.customer_ref },
-      Line: data.line_items.map((l, idx) => ({
-        Id: `${idx + 1}`,
-        LineNum: idx + 1,
-        Description: l.description || undefined,
-        Amount: l.qty * l.unit_price,
-        DetailType: "SalesItemLineDetail",
-        SalesItemLineDetail: {
-          ItemRef: { value: l.item_ref },
-          Qty: l.qty,
-          UnitPrice: l.unit_price,
-          TaxCodeRef: l.tax_code_ref ? { value: l.tax_code_ref } : undefined,
-          ServiceDate: l.service_date || undefined,
-        },
-      })),
+      Line: data.line_items.map((l, idx) => l.item_ref ? ({
+          Id: `${idx + 1}`,
+          LineNum: idx + 1,
+          Description: l.description || undefined,
+          Amount: l.qty * l.unit_price,
+          DetailType: "SalesItemLineDetail",
+          SalesItemLineDetail: {
+            ItemRef: { value: l.item_ref },
+            Qty: l.qty,
+            UnitPrice: l.unit_price,
+            TaxCodeRef: l.tax_code_ref ? { value: l.tax_code_ref } : undefined,
+            ServiceDate: l.service_date || undefined,
+          },
+        }) : ({
+          Id: `${idx + 1}`,
+          LineNum: idx + 1,
+          Description: l.description,
+          DetailType: "DescriptionOnly",
+        })),
       DocNumber: data.doc_number,
       TxnDate: data.txn_date,
       ...(data.linked_txn && {
