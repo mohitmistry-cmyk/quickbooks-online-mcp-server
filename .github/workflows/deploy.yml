@@ -41,5 +41,17 @@ jobs:
             git pull origin main
 
             docker compose up -d --build --remove-orphans
-            docker cp quickbooks-mcp-server:/app/dist ./dist
-            docker cp quickbooks-mcp-server:/app/node_modules ./node_modules
+
+            # docker cp nests the source directory when the destination already
+            # exists (for example ./dist/dist). Stage each build artifact under
+            # a new name, then replace the host copies consumed by Lily.
+            rm -rf ./dist.next ./node_modules.next
+            docker cp quickbooks-mcp-server:/app/dist ./dist.next
+            docker cp quickbooks-mcp-server:/app/node_modules ./node_modules.next
+            rm -rf ./dist ./node_modules
+            mv ./dist.next ./dist
+            mv ./node_modules.next ./node_modules
+
+            # Fail deployment instead of reporting success with a stale MCP.
+            test -f ./dist/index.js
+            grep -q 'lookup_automation_entities' ./dist/index.js
