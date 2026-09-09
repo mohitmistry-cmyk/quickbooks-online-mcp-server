@@ -181,6 +181,8 @@ import { UpdateCompanyInfoTool } from "./tools/update-company-info.tool.js";
 import { CreateAttachableTool } from "./tools/create-attachable.tool.js";
 import { GetAttachableTool } from "./tools/get-attachable.tool.js";
 import { UpdateAttachableTool } from "./tools/update-attachable.tool.js";
+import { UpdateAutomationEntityTool } from "./tools/update-automation-entity.tool.js";
+import { LookupAutomationEntitiesTool } from "./tools/lookup-automation-entities.tool.js";
 import { DeleteAttachableTool } from "./tools/delete-attachable.tool.js";
 import { SearchAttachablesTool } from "./tools/search-attachables.tool.js";
 
@@ -408,6 +410,8 @@ const main = async () => {
   RegisterTool(server, CreateAttachableTool);
   RegisterTool(server, GetAttachableTool);
   RegisterTool(server, UpdateAttachableTool);
+  RegisterTool(server, UpdateAutomationEntityTool);
+  RegisterTool(server, LookupAutomationEntitiesTool);
   RegisterTool(server, DeleteAttachableTool);
   RegisterTool(server, SearchAttachablesTool);
 

@@ -5,8 +5,12 @@ import { formatError } from "../helpers/format-error.js";
 export interface CreateItemInput {
   name: string;
   type: string; // Service, Inventory, etc.
-  income_account_ref: string; // account id
+  income_account_ref?: string; // account id
   expense_account_ref?: string;
+  asset_account_ref?: string;
+  quantity_on_hand?: number;
+  inv_start_date?: string;
+  purchase_cost?: number;
   unit_price?: number;
   description?: string;
 }
@@ -18,8 +22,13 @@ export async function createQuickbooksItem(data: CreateItemInput): Promise<ToolR
     const payload: any = {
       Name: data.name,
       Type: data.type,
-      IncomeAccountRef: { value: data.income_account_ref },
+      IncomeAccountRef: data.income_account_ref ? { value: data.income_account_ref } : undefined,
       ExpenseAccountRef: data.expense_account_ref ? { value: data.expense_account_ref } : undefined,
+      AssetAccountRef: data.asset_account_ref ? { value: data.asset_account_ref } : undefined,
+      TrackQtyOnHand: data.type === "Inventory" ? true : undefined,
+      QtyOnHand: data.quantity_on_hand,
+      InvStartDate: data.inv_start_date,
+      PurchaseCost: data.purchase_cost,
       UnitPrice: data.unit_price,
       Description: data.description,
     };

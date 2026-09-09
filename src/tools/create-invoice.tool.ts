@@ -6,10 +6,14 @@ const toolName = "create_invoice";
 const toolDescription = "Create an invoice in QuickBooks Online.";
 
 const lineItemSchema = z.object({
-  item_ref: z.string().min(1),
+  item_ref: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("QuickBooks Item ID. If omitted, QuickBooks creates a description-only line and ignores its amount."),
   qty: z.number().positive(),
   unit_price: z.number().nonnegative(),
-  description: z.string().optional(),
+  description: z.string().min(1).optional(),
   tax_code_ref: z
     .string()
     .min(1)
@@ -22,6 +26,8 @@ const lineItemSchema = z.object({
     .min(1)
     .optional()
     .describe("Date the service was performed (YYYY-MM-DD), shown per line on the invoice"),
+}).refine((line) => Boolean(line.item_ref || line.description), {
+  message: "A line without item_ref requires a description",
 });
 
 const linkedTxnSchema = z.object({
@@ -74,4 +80,4 @@ export const CreateInvoiceTool: ToolDefinition<typeof toolSchema> = {
   description: toolDescription,
   schema: toolSchema,
   handler: toolHandler,
-}; 
+};
