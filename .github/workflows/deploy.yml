@@ -54,4 +54,5 @@ jobs:
 
             # Fail deployment instead of reporting success with a stale MCP.
             test -f ./dist/index.js
-            grep -q 'lookup_automation_entities' ./dist/index.js
+            test -f ./dist/tools/lookup-automation-entities.tool.js
+            grep -q 'lookup_automation_entities' ./dist/tools/lookup-automation-entities.tool.js
